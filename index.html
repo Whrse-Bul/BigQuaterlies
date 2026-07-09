@@ -247,6 +247,23 @@ body.locked-view .select-wrap,
 body.locked-view .link-index{
   display:none !important;
 }
+
+/* ---- Dossier sub-tabs (Feedback / Shoutouts / Team Rating) ---- */
+.subtabbar{
+  display:flex;flex-wrap:wrap;gap:0;background:var(--paper-dim);
+  border-bottom:2px solid var(--ink);padding:0 26px;
+}
+.subtab{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;
+  letter-spacing:0.3px;text-transform:uppercase;color:var(--ink);
+  background:none;border:none;cursor:pointer;
+  padding:14px 18px;opacity:0.5;position:relative;top:2px;
+  border-bottom:2px solid transparent;transition:opacity .15s ease;
+}
+.subtab:hover{opacity:0.8;}
+.subtab.active{
+  opacity:1;border-bottom:2px solid var(--coral);top:2px;
+}
 </style>
 </head>
 <body>
@@ -299,6 +316,9 @@ body.locked-view .link-index{
 <canvas id="scanCanvas" style="display:none;"></canvas>
 
 <script>
+let currentIdx = -1;
+let currentSubTab = "feedback";
+
 const VALUE_COLORS = {
   "Freedom to Share": "#C1502E",
   "Insightfulness": "#3D5A63",
@@ -455,34 +475,8 @@ function render(idx){
 
   if(d.overview){ renderOverview(); return; }
 
-  const fbHtml = d.feedback.map(f=>`
-    <div class="fb-item">
-      <div class="fb-tag ${f.type.toLowerCase()}">${f.type}</div>
-      <div class="fb-body">
-        <h4>${f.focus}</h4>
-        <p>${f.text}</p>
-      </div>
-    </div>
-  `).join("");
-
-  const soHtml = d.shoutouts.map(s=>{
-    const c = VALUE_COLORS[s.value] || "#3D5A63";
-    return `
-    <div class="shoutout">
-      <div class="avatar" style="background:${c}">${initials(s.who)}</div>
-      <div class="shoutout-body">
-        <div class="shoutout-top">
-          <span class="shoutout-name">${s.who}</span>
-          <span class="value-badge" style="background:${c}">${s.value}</span>
-        </div>
-        <p>${s.text}</p>
-      </div>
-    </div>`;
-  }).join("");
-
-  const legendHtml = Object.entries(VALUE_COLORS).map(([k,c])=>`
-    <div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${k}</div>
-  `).join("");
+  if(idx !== currentIdx){ currentSubTab = "feedback"; }
+  currentIdx = idx;
 
   const viaQR = cameFromScan;
   cameFromScan = false;
@@ -501,25 +495,72 @@ function render(idx){
         <div class="dept-name">${d.dept}</div>
         <div class="dept-meta">${d.feedback.length} feedback items · ${d.shoutouts.length} shoutouts</div>
       </div>
-      <div class="rating-box">
-        <div class="rating-label">Team Rating</div>
-        <div class="rating-num">${d.rating}<span>/10</span></div>
-        <div class="rating-bar"><div class="rating-fill" style="width:${d.rating*10}%"></div></div>
-      </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Department Feedback</div>
-      ${fbHtml}
+    <div class="subtabbar">
+      <button class="subtab ${currentSubTab==='feedback'?'active':''}" onclick="setSubTab('feedback')">Departmental Feedback</button>
+      <button class="subtab ${currentSubTab==='shoutouts'?'active':''}" onclick="setSubTab('shoutouts')">Shoutouts</button>
+      <button class="subtab ${currentSubTab==='rating'?'active':''}" onclick="setSubTab('rating')">Team Rating</button>
     </div>
 
-    <div class="section">
-      <div class="section-title">Core Values Shoutouts</div>
-      <div class="shoutout-grid">${soHtml}</div>
-    </div>
-
-    <div class="legend">${legendHtml}</div>
+    <div id="subContent">${getSubTabContent(d, currentSubTab)}</div>
   `;
+}
+
+function setSubTab(tab){
+  currentSubTab = tab;
+  render(currentIdx);
+}
+
+function getSubTabContent(d, tab){
+  if(tab === "feedback"){
+    const fbHtml = d.feedback.map(f=>`
+      <div class="fb-item">
+        <div class="fb-tag ${f.type.toLowerCase()}">${f.type}</div>
+        <div class="fb-body">
+          <h4>${f.focus}</h4>
+          <p>${f.text}</p>
+        </div>
+      </div>
+    `).join("");
+    return `<div class="section">${fbHtml}</div>`;
+  }
+
+  if(tab === "shoutouts"){
+    const soHtml = d.shoutouts.map(s=>{
+      const c = VALUE_COLORS[s.value] || "#3D5A63";
+      return `
+      <div class="shoutout">
+        <div class="avatar" style="background:${c}">${initials(s.who)}</div>
+        <div class="shoutout-body">
+          <div class="shoutout-top">
+            <span class="shoutout-name">${s.who}</span>
+            <span class="value-badge" style="background:${c}">${s.value}</span>
+          </div>
+          <p>${s.text}</p>
+        </div>
+      </div>`;
+    }).join("");
+    const legendHtml = Object.entries(VALUE_COLORS).map(([k,c])=>`
+      <div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${k}</div>
+    `).join("");
+    return `
+      <div class="section">
+        <div class="shoutout-grid">${soHtml}</div>
+      </div>
+      <div class="legend">${legendHtml}</div>
+    `;
+  }
+
+  if(tab === "rating"){
+    return `
+      <div class="section" style="text-align:center;padding:40px 26px;">
+        <div class="rating-label">Team Rating</div>
+        <div class="rating-num" style="font-size:72px;">${d.rating}<span style="font-size:28px;">/10</span></div>
+        <div class="rating-bar" style="width:220px;margin:14px auto 0;"><div class="rating-fill" style="width:${d.rating*10}%"></div></div>
+      </div>
+    `;
+  }
 }
 
 /* ---- Landing / app toggle ---- */
