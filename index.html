@@ -240,6 +240,13 @@ footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;op
   display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
   color:var(--teal);cursor:pointer;text-decoration:none;letter-spacing:0.3px;margin-bottom:14px;
 }
+
+/* ---- Locked single-department view ---- */
+body.locked-view .tabbar,
+body.locked-view .select-wrap,
+body.locked-view .link-index{
+  display:none !important;
+}
 </style>
 </head>
 <body>
@@ -253,7 +260,6 @@ footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;op
       <svg class="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
       Scan Department QR
     </button>
-    <button class="landing-manual" onclick="enterApp(0)">or browse all departments manually</button>
   </div>
 
   <div id="app">
@@ -264,8 +270,6 @@ footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;op
       </div>
       <div class="masthead-index" id="deptCount"></div>
     </div>
-
-    <span class="back-to-scan" onclick="showLanding()">← Back to scan screen</span>
 
     <div class="select-wrap">
       <select id="deptSelect"></select>
@@ -445,6 +449,7 @@ function renderOverview(){
 
 function render(idx){
   const d = DATA[idx];
+  document.body.classList.toggle("locked-view", !isAdmin);
   document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active", i===idx));
   document.getElementById("deptSelect").value = idx;
 
@@ -525,6 +530,7 @@ function showLanding(){
   history.replaceState(null,"",location.pathname);
 }
 function enterApp(idx){
+  if(DATA[idx].overview) isAdmin = true;
   document.getElementById("landing").style.display = "none";
   document.getElementById("app").style.display = "block";
   history.replaceState(null,"","#"+DATA[idx].slug);
@@ -535,6 +541,7 @@ function enterApp(idx){
 let scanStream = null;
 let scanRAF = null;
 let cameFromScan = false;
+let isAdmin = false;
 
 function normalize(s){ return (s||"").replace(/\s+/g," ").trim().toLowerCase(); }
 
