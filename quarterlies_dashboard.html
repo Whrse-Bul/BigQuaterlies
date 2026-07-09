@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Quarterlies — Department Dossier</title>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#1C2321;
+  --paper:#F5F1E8;
+  --paper-dim:#EAE4D6;
+  --amber:#E2A34A;
+  --teal:#3D5A63;
+  --coral:#C1502E;
+  --sage:#7C9A88;
+  --plum:#6B4A63;
+  --line:rgba(28,35,33,0.14);
+  --shadow: 0 18px 40px -18px rgba(28,35,33,0.35);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;}
+
+.wrap{max-width:1040px;margin:0 auto;padding:28px 22px 60px;}
+
+/* ---- Masthead ---- */
+.masthead{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:3px solid var(--ink);
+  padding-bottom:16px;margin-bottom:22px;flex-wrap:wrap;gap:14px;
+}
+.masthead-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
+  font-size:clamp(28px,4.2vw,42px);line-height:0.95;
+}
+.masthead-sub{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--teal);margin-top:6px;
+}
+.masthead-index{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);opacity:0.55;
+  text-align:right;
+}
+
+/* ---- Department tabs (folder-tab index) ---- */
+.tabbar{display:flex;flex-wrap:wrap;gap:0;margin-bottom:0;position:relative;z-index:2;}
+.tab{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;
+  letter-spacing:0.3px;text-transform:uppercase;
+  padding:10px 18px 12px;border:2px solid var(--ink);border-bottom:none;
+  background:var(--paper-dim);cursor:pointer;user-select:none;
+  border-radius:8px 8px 0 0;margin-right:6px;margin-bottom:-2px;
+  opacity:0.55;transition:all .15s ease;position:relative;top:2px;
+}
+.tab .num{font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:0.6;margin-right:6px;}
+.tab:hover{opacity:0.85;top:0;}
+.tab.active{
+  background:var(--ink);color:var(--paper);opacity:1;top:0;
+  box-shadow:0 -6px 14px -8px rgba(0,0,0,0.3);
+}
+.tab.active .num{color:var(--amber);}
+
+/* mobile select */
+.select-wrap{display:none;margin-bottom:18px;}
+.select-wrap select{
+  width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:20px;
+  text-transform:uppercase;letter-spacing:0.3px;padding:12px 14px;border:2px solid var(--ink);
+  border-radius:10px;background:var(--paper) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231C2321" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 14px center/18px;
+  color:var(--ink);appearance:none;-webkit-appearance:none;
+}
+
+@media (max-width:640px){
+  .tabbar{display:none;}
+  .select-wrap{display:block;}
+}
+
+/* ---- Dossier card ---- */
+.dossier{
+  border:2px solid var(--ink);border-radius:0 10px 10px 10px;
+  background:#fff;box-shadow:var(--shadow);overflow:hidden;
+}
+.dossier-head{
+  display:flex;align-items:center;gap:18px;padding:22px 26px;
+  border-bottom:2px solid var(--ink);background:var(--paper-dim);
+  flex-wrap:wrap;
+}
+.stamp{
+  width:74px;height:74px;border-radius:50%;border:3px solid var(--coral);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transform:rotate(-8deg);position:relative;
+}
+.stamp-inner{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--coral);
+  font-size:11px;text-transform:uppercase;text-align:center;line-height:1.15;
+  letter-spacing:0.5px;
+}
+.dept-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;
+  font-size:clamp(24px,3.4vw,34px);line-height:1;
+}
+.dept-meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);margin-top:6px;}
+
+.rating-box{margin-left:auto;text-align:right;}
+.rating-label{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.6;}
+.rating-num{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:52px;line-height:1;color:var(--ink);}
+.rating-num span{font-size:22px;opacity:0.45;}
+.rating-bar{width:140px;height:6px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden;}
+.rating-fill{height:100%;background:var(--coral);}
+
+/* ---- Section blocks ---- */
+.section{padding:24px 26px;border-bottom:1px solid var(--line);}
+.section:last-child{border-bottom:none;}
+.section-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;text-transform:uppercase;
+  font-size:14px;letter-spacing:2px;color:var(--ink);opacity:0.55;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+
+/* Feedback items */
+.fb-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line);}
+.fb-item:last-child{border-bottom:none;}
+.fb-tag{
+  flex-shrink:0;width:78px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:4px 0;
+  text-align:center;height:fit-content;border-radius:5px;
+}
+.fb-tag.continue{background:rgba(61,90,99,0.14);color:var(--teal);}
+.fb-tag.start{background:rgba(226,163,74,0.22);color:#8a5f18;}
+.fb-body h4{margin:0 0 4px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:15.5px;}
+.fb-body p{margin:0;font-size:14px;line-height:1.5;color:rgba(28,35,33,0.78);}
+
+/* Shoutouts */
+.shoutout-grid{display:flex;flex-direction:column;gap:12px;}
+.shoutout{
+  display:flex;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;
+  background:var(--paper);
+}
+.avatar{
+  flex-shrink:0;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#fff;
+}
+.shoutout-body{flex:1;}
+.shoutout-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.shoutout-name{font-weight:600;font-size:14.5px;}
+.value-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:0.4px;padding:2px 8px;border-radius:20px;color:#fff;
+}
+.shoutout-body p{margin:0;font-size:13.5px;line-height:1.5;color:rgba(28,35,33,0.75);}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:16px 26px 22px;background:var(--paper-dim);border-top:2px solid var(--ink);}
+.legend-item{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;}
+.legend-dot{width:9px;height:9px;border-radius:50%;}
+
+footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:0.4;margin-top:26px;letter-spacing:0.5px;}
+
+.qr-banner{
+  display:flex;align-items:center;gap:10px;
+  background:var(--ink);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.4px;
+  padding:10px 16px;border-radius:8px;margin-bottom:14px;
+}
+.qr-banner .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+.qr-banner a{color:var(--amber);text-decoration:none;margin-left:auto;font-weight:600;}
+.qr-banner a:hover{text-decoration:underline;}
+
+.link-index{margin-top:34px;border-top:2px dashed var(--line);padding-top:18px;}
+.link-index-title{font-family:'Barlow Condensed',sans-serif;font-weight:600;text-transform:uppercase;font-size:13px;letter-spacing:1.5px;opacity:0.55;margin-bottom:10px;}
+.link-row{display:flex;justify-content:space-between;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.link-row span:first-child{opacity:0.6;}
+.link-row code{background:var(--paper-dim);padding:2px 8px;border-radius:5px;}
+
+/* ---- Overview mode ---- */
+.overview-head{padding:24px 26px;border-bottom:2px solid var(--ink);background:var(--paper-dim);}
+.overview-head .dept-name{margin-bottom:4px;}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;padding:24px 26px;}
+.ov-card{
+  border:2px solid var(--ink);border-radius:10px;padding:16px 18px;cursor:pointer;
+  background:#fff;transition:transform .12s ease, box-shadow .12s ease;
+}
+.ov-card:hover{transform:translateY(-3px);box-shadow:0 12px 22px -12px rgba(28,35,33,0.4);}
+.ov-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.ov-code{font-family:'IBM Plex Mono',monospace;font-size:10.5px;opacity:0.5;}
+.ov-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;font-size:20px;line-height:1.05;margin-top:2px;}
+.ov-rating{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;color:var(--coral);}
+.ov-rating span{font-size:14px;opacity:0.5;}
+.ov-bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px;}
+.ov-bar-fill{height:100%;background:var(--coral);}
+.ov-stats{display:flex;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:0.6;}
+.ov-cta{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);font-weight:600;}
+.overview-avg{padding:18px 26px;border-top:2px dashed var(--line);display:flex;align-items:center;gap:16px;}
+.overview-avg .num{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:40px;color:var(--ink);}
+.overview-avg .label{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.55;}
+
+/* ---- Landing gate ---- */
+#landing{
+  min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 20px;
+}
+.landing-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal);margin-bottom:10px;}
+.landing-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;font-size:clamp(30px,6vw,52px);line-height:0.98;margin-bottom:14px;}
+.landing-sub{font-size:15px;color:rgba(28,35,33,0.65);max-width:420px;margin-bottom:34px;line-height:1.5;}
+.scan-btn{
+  display:flex;align-items:center;gap:12px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
+  font-size:19px;color:var(--paper);background:var(--ink);border:none;border-radius:50px;
+  padding:18px 34px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease;
+}
+.scan-btn:hover{transform:translateY(-2px);}
+.scan-btn:active{transform:translateY(0);}
+.scan-icon{width:24px;height:24px;flex-shrink:0;}
+.landing-manual{margin-top:22px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--teal);cursor:pointer;text-decoration:underline;background:none;border:none;}
+
+/* ---- Scanner modal ---- */
+.scan-overlay{
+  position:fixed;inset:0;background:rgba(28,35,33,0.94);z-index:50;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;
+}
+.scan-frame{position:relative;width:min(90vw,360px);aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:#000;}
+.scan-frame video{width:100%;height:100%;object-fit:cover;}
+.scan-reticle{position:absolute;inset:14%;border:3px solid var(--amber);border-radius:14px;pointer-events:none;}
+.scan-status{font-family:'IBM Plex Mono',monospace;color:var(--paper);font-size:13px;margin-top:20px;text-align:center;max-width:340px;letter-spacing:0.3px;}
+.scan-status.err{color:#E77;}
+.scan-close, .scan-retry{
+  margin-top:20px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--paper);background:transparent;border:1px solid rgba(245,241,232,0.4);border-radius:30px;
+  padding:9px 20px;cursor:pointer;
+}
+.scan-retry{border-color:var(--amber);color:var(--amber);margin-right:10px;}
+
+#app{display:none;}
+.back-to-scan{
+  display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+  color:var(--teal);cursor:pointer;text-decoration:none;letter-spacing:0.3px;margin-bottom:14px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="landing">
+    <div class="landing-eyebrow">Merch Fulfillment · Big Quarterlies</div>
+    <div class="landing-title">Scan Your<br>Department QR</div>
+    <div class="landing-sub">Point your camera at your department's QR code to open your quarter's feedback, shoutouts, and rating.</div>
+    <button class="scan-btn" onclick="openScanner()">
+      <svg class="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+      Scan Department QR
+    </button>
+    <button class="landing-manual" onclick="enterApp(0)">or browse all departments manually</button>
+  </div>
+
+  <div id="app">
+    <div class="masthead">
+      <div>
+        <div class="masthead-title">Big Quarterlies</div>
+        <div class="masthead-sub">Merch Fulfillment · Cross-Department Dossier</div>
+      </div>
+      <div class="masthead-index" id="deptCount"></div>
+    </div>
+
+    <span class="back-to-scan" onclick="showLanding()">← Back to scan screen</span>
+
+    <div class="select-wrap">
+      <select id="deptSelect"></select>
+    </div>
+    <div class="tabbar" id="tabbar"></div>
+
+    <div class="dossier" id="dossier"></div>
+
+    <div class="link-index" id="linkIndex"></div>
+
+    <footer>Scroll for full feedback · Select a department above to switch dossiers</footer>
+  </div>
+
+</div>
+
+<div class="scan-overlay" id="scanOverlay" style="display:none;">
+  <div class="scan-frame">
+    <video id="scanVideo" autoplay muted playsinline></video>
+    <div class="scan-reticle"></div>
+  </div>
+  <div class="scan-status" id="scanStatus">Point camera at a department QR code…</div>
+  <div>
+    <button class="scan-retry" id="scanRetryBtn" style="display:none;" onclick="startScanLoop()">Try Again</button>
+    <button class="scan-close" onclick="closeScanner()">Cancel</button>
+  </div>
+</div>
+<canvas id="scanCanvas" style="display:none;"></canvas>
+
+<script>
+const VALUE_COLORS = {
+  "Freedom to Share": "#C1502E",
+  "Insightfulness": "#3D5A63",
+  "Gentle Power": "#7C9A88",
+  "Growth Mindset": "#E2A34A",
+  "One Step Ahead": "#6B4A63"
+};
+
+const DATA = [
+{
+  slug:"merch-fulfillment",
+  dept:"Merch Fulfillment", code:"MF-00", overview:true
+},
+{
+  slug:"pdd",
+  dept:"Prod Design & Dev", code:"PDD-01", rating:8,
+  feedback:[
+    {type:"Continue", focus:"Maintain proactive supplier delivery coordination", text:"Maintain proactive supplier delivery coordination by ensuring timely stock delivery to the warehouse, clear delivery location alignment, and real-time updates to the inbound stock for quality issues."},
+    {type:"Continue", focus:"Conduct quarterly QC training", text:"Conduct quarterly QC training especially for new materials, improved designs, or updated quality standards to ensure consistent checking and handling."},
+    {type:"Start", focus:"Sustain strong women's line development", text:"Sustain strong women's line development by continuing to create fresh, breathable, on-brand designs with well-planned and consistent color palettes in every release."},
+    {type:"Start", focus:"Minimize partial deliveries", text:"Minimize partial deliveries by improving supplier delivery planning and quantity splitting to prevent incomplete color completion."},
+    {type:"Start", focus:"Track product cost history per PO", text:"Track product cost history per PO to monitor cost changes, validate supplier price increases, support price negotiation, and improve margin, inventory value, pricing, and promo decision accuracy."},
+    {type:"Start", focus:"Improve PO and product update documentation", text:"Improve PO and product update documentation by uploading POs in Business Central on time, sending product improvements across departments, and adding QC clearance lines in the transaction masterfile."}
+  ],
+  shoutouts:[
+    {who:"Ms Les", value:"Freedom to Share", text:"She has become easier to work with and more open to collaboration. We also appreciate how she and her team take time to explain new designs, materials, and construction details, while remaining receptive to feedback that helps improve their work."},
+    {who:"Dain", value:"Insightfulness", text:"Dain is open to sharing updates and is very hands-on in aligning the costs. Whenever we give initial feedback about the pricing, she tries to negotiate with the supplier especially for the cost of the entry items."},
+    {who:"Mae", value:"Insightfulness", text:"Very insightful and well-prepared during the QC training. Her explanation was clear and complete, covering even questions that had not yet been asked."}
+  ]
+},
+{
+  slug:"brand-comms",
+  dept:"Brand Comms", code:"BC-02", rating:8.5,
+  feedback:[
+    {type:"Continue", focus:"Creative POPs, GWPs and Sales initiatives", text:"Continue creating colorful, fun, and engaging POPs, GWPs, online promos, and creative campaigns that help boost sales and strengthen customer interest."},
+    {type:"Continue", focus:"Content Strategy and Social Media growth", text:"Continue producing highly engaging content and identifying the most effective content pillars per social media account to increase brand awareness, improve store visuals, and grow followers."},
+    {type:"Continue", focus:"Calendar and Payout Process Discipline", text:"Continue proper calendar alignment and Shopify-based pullout requests to ensure smooth coordination, real-time inventory dedication, and better execution across teams."},
+    {type:"Continue", focus:"Standardized VM Execution and Tracking", text:"Standardize and implement VM display standards across all stores, including barcode tracking for VM materials to improve monitoring, allocation, and accountability per store."},
+    {type:"Start", focus:"SKU Availability and Promo Readiness", text:"Check stock levels daily and promote only items with complete key sizes to avoid out-of-stock issues, create urgency, and drive stronger promo execution."}
+  ],
+  shoutouts:[
+    {who:"Nicko", value:"Gentle Power", text:"Her understanding of customer preferences led to the creation of women's apparel that is polished and meaningful."},
+    {who:"Marcus", value:"One Step Ahead", text:"Showed strong ownership in pricing approval by staying ahead of scheduling and ensuring timely coordination. His proactive approach helps prevent delays and supports smoother execution across related activities."},
+    {who:"Dave", value:"Freedom to Share", text:"Demonstrated initiative by challenging existing processes and targets. His approach encourages the team to review current ways of working, identify gaps, and push for better standards and improvements."},
+    {who:"Nico", value:"Growth Mindset", text:"Remained on top of appointment schedules and Brand Communications-related activities. Her coordination helps ensure timelines are managed properly and key activities are executed smoothly."},
+    {who:"Nathan", value:"Gentle Power", text:"Showed patience and professionalism despite challenging situations with Frick. He also took the lead on store openings, showing initiative, composure, and operational support when needed."},
+    {who:"Calvin", value:"Freedom to Share", text:"Showed strong attention to store-related concerns, such as extra storage requests, and follow-through on store needs were addressed promptly and on time."}
+  ]
+},
+{
+  slug:"hrd",
+  dept:"HRD", code:"HR-03", rating:9,
+  feedback:[
+    {type:"Continue", focus:"APE, EPE, and Employee Documentation", text:"Continue improving the APE process and staying proactive in preparing and submitting EPRs or employee evaluations on time."},
+    {type:"Continue", focus:"Warehouse Training and Orientation", text:"Continue conducting warehouse visits and training orientations to manpower in a properly guided, aligned, and equipped with the right process knowledge."},
+    {type:"Continue", focus:"HR Compliance and Employee Support", text:"Continue issuing memos, processing official company IDs, and improving timeliness of government remittances, loan deductions, and ATM card issuance to support proper documentation and employee service."},
+    {type:"Continue", focus:"Event Execution Readiness", text:"Ensure proper event execution by aligning plans with the operational working environment, validate manpower, and operational requirements before implementation."},
+    {type:"Start", focus:"Stronger Hiring and Loan Standards", text:"Continue sharing movements, key updates, company insights, and top-selling store performance to keep employees informed and aligned."}
+  ],
+  shoutouts:[
+    {who:"Stephan", value:"Growth Mindset", text:"Demonstrated strong ownership through regular store visits and monitoring of new staff. Store representatives felt supported by his responsiveness and follow-up."},
+    {who:"SJ", value:"Freedom to Share", text:"Showed commitment by conducting Bulacan warehouse visits and checking compliance with company rules and issued memos. This helps maintain discipline, proper execution, and alignment with warehouse operating standards."},
+    {who:"Emmy", value:"Freedom to Share", text:"Showed commitment by conducting Bulacan warehouse visits and checking compliance with company rules and issued memos. This helps maintain discipline, proper execution, and alignment with warehouse operating standards."},
+    {who:"Leia", value:"One Step Ahead", text:"Showed strong ownership by payroll processing and supported the team through payroll refreshers. Her effort helps ensure that organization rules are properly followed and store operations remain aligned with company standards."}
+  ]
+},
+{
+  slug:"finance-audit",
+  dept:"Finance + Audit", code:"FA-04", rating:8,
+  feedback:[
+    {type:"Continue", focus:"MyIR Process Awareness", text:"Continue conducting regular MyIR refreshers and staying updated on relevant filing to ensure timely compliance and process compliance."},
+    {type:"Continue", focus:"Financial Request Support", text:"Continue handling urgent and high-priority financial requests effectively to support department needs and business continuity."},
+    {type:"Continue", focus:"EM Participation", text:"Continue actively acknowledging announcements and addressing concerns raised in Viber group chats to keep teams informed and aligned."},
+    {type:"Continue", focus:"Process and Tracker Alignment", text:"Ensure all new processes or trackers are properly aligned with all users and test-run before full implementation to avoid confusion and execution gaps."}
+  ],
+  shoutouts:[
+    {who:"Elisa", value:"Gentle Power", text:"She actively shares helpful suggestions on how we can improve our COOP tracking process. She is also very on top of the current procedures. This helps ensure that information is monitored and aligned properly, and shows her willingness to collaborate."},
+    {who:"Quin", value:"Gentle Power", text:"Reinforced the importance of process discipline by ensuring that no pertinent purchases fall outside the current procedures. This helps protect fairness, accountability, and consistency across the organization."},
+    {who:"AJ", value:"One Step Ahead", text:"Demonstrated strong follow-through in resolving store concerns. Store discrepancies were properly addressed, issues were managed properly, and timely updates were provided regarding stock count concerns."},
+    {who:"Pola", value:"One Step Ahead", text:"Timely update on DTSR, making sure a smooth transaction and addressing concerns ahead of time before escalating into a much bigger concern."}
+  ]
+},
+{
+  slug:"sedo",
+  dept:"SEDO", code:"SE-05", rating:7.5,
+  feedback:[
+    {type:"Continue", focus:"Company-Wide Performance Updates", text:"Continue sharing company-wide updates, key metrics, and top-selling store performance to keep employees informed and aligned."},
+    {type:"Continue", focus:"Store Personnel Capability Building", text:"Continue conducting regular training to improve store personnel's product knowledge and selling skills to support stronger customer service and sales performance."},
+    {type:"Continue", focus:"AM Weekly Accountability", text:"Continue conducting regular weekly AM meetings to maintain discipline, accountability, and consistent follow-through on priorities."},
+    {type:"Continue", focus:"Brand Event Milestone Management", text:"Ensure all brand-related events have clear milestones, owners, timelines, and follow-through to improve execution and accountability."},
+    {type:"Start", focus:"AM Data-Driven Growth Mindset", text:"AMs should be more intentional in analyzing sell-through, DOI, and MOI while consistently embodying a growth mindset as the brand and employees continue to evolve."}
+  ],
+  shoutouts:[
+    {who:"Sherman", value:"Gentle Power", text:"Timely update on DTSR, making sure a smooth transaction and addressing concerns ahead of time before escalating into a much bigger concern."},
+    {who:"Inna", value:"Freedom to Share", text:"Remained on top of budget disbursement, concerns, and required reports. Her attentiveness helped ensure proper tracking, timely action, and smoother resolution."},
+    {who:"Shaina", value:"Gentle Power", text:"Showed strong execution and follow-through on the process. She consistently ensures that tasks are completed properly and aligned with expected standards."},
+    {who:"Ion", value:"Freedom to Share", text:"Showed gentle power by leading with calmness while staying on top of supporting her team's sales performance. She also ensured VM compliance and submitted timely event feedback, including clear explanations on sales dips, showing accountability and awareness."},
+    {who:"Javen", value:"One Step Ahead", text:"Showed a solutions-driven mindset by actively sharing possible solutions for every concern. Her eagerness to liquidate aging items also often reflects initiative in improving inventory movement and supporting better store performance."}
+  ]
+}
+];
+
+function initials(name){
+  return name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+}
+
+function getSlugFromURL(){
+  return (location.hash || "").replace("#","").trim().toLowerCase();
+}
+
+function renderOverview(){
+  const depts = DATA.filter(d=>!d.overview);
+  const avg = (depts.reduce((s,d)=>s+d.rating,0)/depts.length).toFixed(1);
+
+  const cards = depts.map((d,realIdx)=>{
+    const i = DATA.indexOf(d);
+    return `
+    <div class="ov-card" onclick="cameFromScan=false; history.replaceState(null,'','#${d.slug}'); render(${i});">
+      <div class="ov-card-top">
+        <div>
+          <div class="ov-code">${d.code}</div>
+          <div class="ov-name">${d.dept}</div>
+        </div>
+        <div class="ov-rating">${d.rating}<span>/10</span></div>
+      </div>
+      <div class="ov-bar"><div class="ov-bar-fill" style="width:${d.rating*10}%"></div></div>
+      <div class="ov-stats">
+        <span>${d.feedback.length} feedback</span>
+        <span>${d.shoutouts.length} shoutouts</span>
+      </div>
+      <div class="ov-cta">View dossier →</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("dossier").innerHTML = `
+    <div class="overview-head">
+      <div class="stamp" style="float:right;"><div class="stamp-inner">Q. Report<br>MF-00</div></div>
+      <div class="dept-name">Merch Fulfillment</div>
+      <div class="dept-meta">All departments · Big Quarterlies overview</div>
+    </div>
+    <div class="overview-grid">${cards}</div>
+    <div class="overview-avg">
+      <div class="num">${avg}<span style="font-size:16px;opacity:0.4;">/10</span></div>
+      <div class="label">Average team rating<br>across all ${depts.length} departments</div>
+    </div>
+  `;
+}
+
+function render(idx){
+  const d = DATA[idx];
+  document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active", i===idx));
+  document.getElementById("deptSelect").value = idx;
+
+  if(d.overview){ renderOverview(); return; }
+
+  const fbHtml = d.feedback.map(f=>`
+    <div class="fb-item">
+      <div class="fb-tag ${f.type.toLowerCase()}">${f.type}</div>
+      <div class="fb-body">
+        <h4>${f.focus}</h4>
+        <p>${f.text}</p>
+      </div>
+    </div>
+  `).join("");
+
+  const soHtml = d.shoutouts.map(s=>{
+    const c = VALUE_COLORS[s.value] || "#3D5A63";
+    return `
+    <div class="shoutout">
+      <div class="avatar" style="background:${c}">${initials(s.who)}</div>
+      <div class="shoutout-body">
+        <div class="shoutout-top">
+          <span class="shoutout-name">${s.who}</span>
+          <span class="value-badge" style="background:${c}">${s.value}</span>
+        </div>
+        <p>${s.text}</p>
+      </div>
+    </div>`;
+  }).join("");
+
+  const legendHtml = Object.entries(VALUE_COLORS).map(([k,c])=>`
+    <div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${k}</div>
+  `).join("");
+
+  const viaQR = cameFromScan;
+  cameFromScan = false;
+  const banner = viaQR ? `
+    <div class="qr-banner">
+      <span class="dot"></span>
+      Scanned via QR · showing ${d.dept}'s dossier only
+      <a href="${location.pathname}">View all departments</a>
+    </div>` : "";
+
+  document.getElementById("dossier").innerHTML = `
+    ${banner}
+    <div class="dossier-head">
+      <div class="stamp"><div class="stamp-inner">Q. Report<br>${d.code}</div></div>
+      <div>
+        <div class="dept-name">${d.dept}</div>
+        <div class="dept-meta">${d.feedback.length} feedback items · ${d.shoutouts.length} shoutouts</div>
+      </div>
+      <div class="rating-box">
+        <div class="rating-label">Team Rating</div>
+        <div class="rating-num">${d.rating}<span>/10</span></div>
+        <div class="rating-bar"><div class="rating-fill" style="width:${d.rating*10}%"></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Department Feedback</div>
+      ${fbHtml}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Core Values Shoutouts</div>
+      <div class="shoutout-grid">${soHtml}</div>
+    </div>
+
+    <div class="legend">${legendHtml}</div>
+  `;
+}
+
+/* ---- Landing / app toggle ---- */
+function showLanding(){
+  stopCamera();
+  document.getElementById("landing").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+  history.replaceState(null,"",location.pathname);
+}
+function enterApp(idx){
+  document.getElementById("landing").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  history.replaceState(null,"","#"+DATA[idx].slug);
+  render(idx);
+}
+
+/* ---- QR Scanner ---- */
+let scanStream = null;
+let scanRAF = null;
+let cameFromScan = false;
+
+function normalize(s){ return (s||"").replace(/\s+/g," ").trim().toLowerCase(); }
+
+function openScanner(){
+  document.getElementById("scanOverlay").style.display = "flex";
+  document.getElementById("scanStatus").className = "scan-status";
+  document.getElementById("scanStatus").textContent = "Point camera at a department QR code…";
+  document.getElementById("scanRetryBtn").style.display = "none";
+  startScanLoop();
+}
+
+function closeScanner(){
+  stopCamera();
+  document.getElementById("scanOverlay").style.display = "none";
+}
+
+function stopCamera(){
+  if(scanRAF) cancelAnimationFrame(scanRAF);
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream = null; }
+}
+
+function startScanLoop(){
+  document.getElementById("scanRetryBtn").style.display = "none";
+  document.getElementById("scanStatus").className = "scan-status";
+  document.getElementById("scanStatus").textContent = "Point camera at a department QR code…";
+
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" } })
+    .then(stream=>{
+      scanStream = stream;
+      const video = document.getElementById("scanVideo");
+      video.srcObject = stream;
+      const canvas = document.getElementById("scanCanvas");
+      const ctx = canvas.getContext("2d");
+
+      function tick(){
+        if(video.readyState === video.HAVE_ENOUGH_DATA){
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+          if(code && code.data){
+            handleScanResult(code.data);
+            return;
+          }
+        }
+        scanRAF = requestAnimationFrame(tick);
+      }
+      scanRAF = requestAnimationFrame(tick);
+    })
+    .catch(()=>{
+      document.getElementById("scanStatus").className = "scan-status err";
+      document.getElementById("scanStatus").textContent = "Couldn't access the camera. Check permissions, or browse manually instead.";
+      document.getElementById("scanRetryBtn").style.display = "inline-block";
+    });
+}
+
+function handleScanResult(value){
+  const match = DATA.findIndex(d=>normalize(d.dept) === normalize(value));
+  if(match === -1){
+    stopCamera();
+    document.getElementById("scanStatus").className = "scan-status err";
+    document.getElementById("scanStatus").textContent = `Unrecognized code: "${value}". Try again.`;
+    document.getElementById("scanRetryBtn").style.display = "inline-block";
+    return;
+  }
+  stopCamera();
+  document.getElementById("scanOverlay").style.display = "none";
+  cameFromScan = true;
+  enterApp(match);
+}
+
+function buildNav(){
+  const tabbar = document.getElementById("tabbar");
+  const select = document.getElementById("deptSelect");
+  DATA.forEach((d,i)=>{
+    const tab = document.createElement("div");
+    tab.className = "tab";
+    tab.innerHTML = `<span class="num">${String(i+1).padStart(2,'0')}</span>${d.dept}`;
+    tab.onclick = ()=>{ cameFromScan = false; history.replaceState(null,"","#"+d.slug); render(i); };
+    tabbar.appendChild(tab);
+
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `${String(i+1).padStart(2,'0')} — ${d.dept}`;
+    select.appendChild(opt);
+  });
+  select.onchange = (e)=>{
+    const i = parseInt(e.target.value);
+    cameFromScan = false;
+    history.replaceState(null,"","#"+DATA[i].slug);
+    render(i);
+  };
+  document.getElementById("deptCount").textContent = `${DATA.length-1} Departments Indexed`;
+}
+
+function buildLinkIndex(){
+  const base = location.origin + location.pathname;
+  const rows = DATA.map(d=>`
+    <div class="link-row">
+      <span>${d.dept}</span>
+      <code>${base}#${d.slug}</code>
+    </div>`).join("");
+  document.getElementById("linkIndex").innerHTML = `
+    <div class="link-index-title">Direct links for QR generation</div>
+    ${rows}
+  `;
+}
+
+buildNav();
+buildLinkIndex();
+
+const initialSlug = getSlugFromURL();
+const initialIdx = DATA.findIndex(d=>d.slug===initialSlug);
+if(initialIdx === -1){
+  showLanding();
+} else {
+  enterApp(initialIdx);
+}
+</script>
+</body>
+</html>
